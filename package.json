@@ -1,0 +1,13 @@
+{
+  "name": "telegram-habit-tracker",
+  "private": true,
+  "packageManager": "pnpm@9.15.2",
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter web --filter bot dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:bot": "pnpm --filter bot dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck"
+  }
+}

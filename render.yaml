@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: habit-tracker-web
+    env: static
+    rootDir: .
+    buildCommand: corepack enable && corepack prepare pnpm@9.15.2 --activate && pnpm install --no-frozen-lockfile && pnpm --filter web build
+    staticPublishPath: apps/web/dist
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=3600
+      - path: /index.html
+        name: Cache-Control
+        value: no-cache
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://api.telegram.org;"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_APP_VERSION
+        value: 1.0.0
+
+  - type: worker
+    name: habit-tracker-bot
+    env: node
+    rootDir: .
+    buildCommand: corepack enable && corepack prepare pnpm@9.15.2 --activate && pnpm install --no-frozen-lockfile && pnpm --filter bot build
+    startCommand: pnpm --filter bot start
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: WEB_APP_URL
+        sync: false
