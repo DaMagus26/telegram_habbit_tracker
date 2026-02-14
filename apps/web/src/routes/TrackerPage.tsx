@@ -107,7 +107,10 @@ export function TrackerPage(): JSX.Element {
   if (status === "loading" || status === "idle") {
     return (
       <main className="page page--centered">
-        <div className="panel">Загрузка данных...</div>
+        <div className="panel" style={{ textAlign: "center", padding: "32px" }}>
+          <div className="skeleton" style={{ width: 48, height: 48, borderRadius: "50%", margin: "0 auto 12px" }} />
+          <p className="muted">Загрузка данных...</p>
+        </div>
       </main>
     );
   }
@@ -131,7 +134,9 @@ export function TrackerPage(): JSX.Element {
       <header className="header">
         <h1>{APP_TITLE}</h1>
         <button type="button" className="icon-button" onClick={() => setDrawerOpen(true)} aria-label="Открыть меню">
-          ☰
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
         </button>
       </header>
 
@@ -160,41 +165,49 @@ export function TrackerPage(): JSX.Element {
       {readOnly ? <Banner tone="warning">Режим только чтение. Обновите приложение и перезапустите.</Banner> : null}
 
       <section className="week-controls">
-        <button type="button" className="btn btn-secondary" onClick={() => shiftWeek(-1)}>
-          ← Предыдущая
-        </button>
-        <strong>{getWeekLabel(selectedWeekStart)}</strong>
         <button
           type="button"
-          className="btn btn-secondary"
+          className="week-controls__btn"
+          onClick={() => shiftWeek(-1)}
+          aria-label="Предыдущая неделя"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <span className="week-controls__label">{getWeekLabel(selectedWeekStart)}</span>
+        <button
+          type="button"
+          className="week-controls__btn"
           onClick={() => shiftWeek(1)}
           disabled={!canGoToNextWeek(selectedWeekStart)}
+          aria-label="Следующая неделя"
         >
-          Следующая →
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
       </section>
 
-      <section className="content-grid">
-        <HabitChecklist
-          habits={activeHabits}
-          completedIds={selectedDayCompleted}
-          disabled={readOnly}
-          syncError={syncState === "error"}
-          onToggle={(habitId) => void toggleHabit(habitId)}
-          onAdd={() => setCreateOpen(true)}
-        />
+      <HabitChecklist
+        habits={activeHabits}
+        completedIds={selectedDayCompleted}
+        disabled={readOnly}
+        syncError={syncState === "error"}
+        onToggle={(habitId) => void toggleHabit(habitId)}
+        onAdd={() => setCreateOpen(true)}
+      />
 
-        <WeekChart
-          points={weeklyPoints}
-          selectedDate={selectedDate}
-          activeHabitsCount={activeHabits.length}
-          onSelectDate={selectDate}
-        />
-      </section>
+      <WeekChart
+        points={weeklyPoints}
+        selectedDate={selectedDate}
+        activeHabitsCount={activeHabits.length}
+        onSelectDate={selectDate}
+      />
+
+      <p className="muted page__footer">{formatDateLong(selectedDate)}</p>
 
       <DayNavigator days={weekDates} selectedDate={selectedDate} onSelect={selectDate} />
-
-      <p className="muted page__footer">Выбранный день: {formatDateLong(selectedDate)}</p>
 
       <DrawerMenu
         open={drawerOpen}
@@ -211,7 +224,7 @@ export function TrackerPage(): JSX.Element {
       <Modal title="Добавить привычку" open={createOpen} onClose={() => setCreateOpen(false)}>
         <form className="stack" onSubmit={handleCreateHabit}>
           <label className="stack">
-            <span>Название</span>
+            <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-secondary)" }}>Название</span>
             <input
               value={newTitle}
               onChange={(event) => {

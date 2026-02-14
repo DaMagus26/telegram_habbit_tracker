@@ -33,11 +33,12 @@ export function DrawerMenu({
   return (
     <div className="overlay" role="presentation" onClick={onClose}>
       <aside className="drawer" role="dialog" aria-label="Меню" onClick={(event) => event.stopPropagation()}>
+        <div className="drawer__handle" />
         <button type="button" className="drawer__item" onClick={() => run(onManage)}>
           Управление привычками
         </button>
         <button type="button" className="drawer__item" onClick={() => run(onPrevWeek)}>
-          Неделя: предыдущая
+          Предыдущая неделя
         </button>
         <button
           type="button"
@@ -45,11 +46,13 @@ export function DrawerMenu({
           onClick={() => run(onNextWeek)}
           disabled={!canGoNextWeek}
         >
-          Неделя: следующая
+          Следующая неделя
         </button>
+        <div className="drawer__separator" />
         <button type="button" className="drawer__item drawer__item--danger" onClick={() => run(onResetDay)}>
-          Сброс отметок за выбранный день
+          Сброс отметок за день
         </button>
+        <div className="drawer__separator" />
         <button type="button" className="drawer__item" onClick={() => run(onOpenHelp)}>
           Справка
         </button>

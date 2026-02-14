@@ -78,7 +78,10 @@ export function ManageHabitsPage(): JSX.Element {
   if (status === "loading" || status === "idle") {
     return (
       <main className="page page--centered">
-        <div className="panel">Загрузка...</div>
+        <div className="panel" style={{ textAlign: "center", padding: "32px" }}>
+          <div className="skeleton" style={{ width: 48, height: 48, borderRadius: "50%", margin: "0 auto 12px" }} />
+          <p className="muted">Загрузка...</p>
+        </div>
       </main>
     );
   }
@@ -139,17 +142,19 @@ export function ManageHabitsPage(): JSX.Element {
     <main className="page">
       <header className="header">
         <button type="button" className="icon-button" onClick={() => navigate("/")} aria-label="Назад">
-          ←
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M11 4L6 9l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
-        <h1>{APP_TITLE}</h1>
+        <h1>Управление</h1>
         <span className="header__spacer" />
       </header>
 
       {notice ? <Banner tone="warning">{notice}</Banner> : null}
 
       <section className="panel">
-        <h3>+ Добавить привычку</h3>
-        <form className="stack" onSubmit={handleAddHabit}>
+        <h3>Добавить привычку</h3>
+        <form className="stack" onSubmit={handleAddHabit} style={{ marginTop: 10 }}>
           <input
             value={newTitle}
             onChange={(event) => {
@@ -161,16 +166,16 @@ export function ManageHabitsPage(): JSX.Element {
           />
           {newTitleError ? <p className="field-error">{newTitleError}</p> : null}
           <button type="submit" className="btn btn-primary" disabled={readOnly}>
-            Добавить привычку
+            Добавить
           </button>
         </form>
       </section>
 
       <section className="panel">
-        <h3>Активные привычки</h3>
-        {activeHabits.length === 0 ? <p className="muted">Нет активных привычек.</p> : null}
+        <h3>Активные</h3>
+        {activeHabits.length === 0 ? <p className="muted" style={{ marginTop: 8 }}>Нет активных привычек.</p> : null}
 
-        <ul className="manage-list">
+        <ul className="manage-list" style={{ marginTop: 10 }}>
           {activeHabits.map((habit) => {
             const isEditing = editingId === habit.id;
             return (
@@ -183,7 +188,14 @@ export function ManageHabitsPage(): JSX.Element {
                 onDrop={() => void handleDrop(habit.id)}
               >
                 <span className="drag-handle" aria-hidden>
-                  ⋮⋮
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <circle cx="5" cy="3" r="1.2" fill="currentColor" />
+                    <circle cx="9" cy="3" r="1.2" fill="currentColor" />
+                    <circle cx="5" cy="7" r="1.2" fill="currentColor" />
+                    <circle cx="9" cy="7" r="1.2" fill="currentColor" />
+                    <circle cx="5" cy="11" r="1.2" fill="currentColor" />
+                    <circle cx="9" cy="11" r="1.2" fill="currentColor" />
+                  </svg>
                 </span>
 
                 {isEditing ? (
@@ -205,7 +217,7 @@ export function ManageHabitsPage(): JSX.Element {
                 <div className="manage-item__actions">
                   {isEditing ? (
                     <>
-                      <button type="button" className="btn btn-secondary" onClick={() => void handleRename()}>
+                      <button type="button" className="btn btn-tertiary" onClick={() => void handleRename()}>
                         Сохранить
                       </button>
                       <button
@@ -232,7 +244,7 @@ export function ManageHabitsPage(): JSX.Element {
                         }}
                         disabled={readOnly}
                       >
-                        Переименовать
+                        Изменить
                       </button>
                       <button
                         type="button"
@@ -240,7 +252,7 @@ export function ManageHabitsPage(): JSX.Element {
                         onClick={() => void archiveHabit(habit.id)}
                         disabled={readOnly}
                       >
-                        Архивировать
+                        Архив
                       </button>
                       <button
                         type="button"
@@ -263,39 +275,40 @@ export function ManageHabitsPage(): JSX.Element {
         </ul>
       </section>
 
-      <section className="panel">
-        <h3>Архив</h3>
-        {archivedHabits.length === 0 ? <p className="muted">Архив пуст.</p> : null}
-        <ul className="manage-list">
-          {archivedHabits.map((habit) => (
-            <li key={habit.id} className="manage-item">
-              <span className="manage-item__title">{habit.title}</span>
-              <div className="manage-item__actions">
-                <button
-                  type="button"
-                  className="btn btn-tertiary"
-                  onClick={() => void unarchiveHabit(habit.id)}
-                  disabled={readOnly}
-                >
-                  Разархивировать
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-danger"
-                  onClick={() => {
-                    if (window.confirm("Удалить привычку?")) {
-                      void deleteHabit(habit.id);
-                    }
-                  }}
-                  disabled={readOnly}
-                >
-                  Удалить
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {archivedHabits.length > 0 ? (
+        <section className="panel">
+          <h3>Архив</h3>
+          <ul className="manage-list" style={{ marginTop: 10 }}>
+            {archivedHabits.map((habit) => (
+              <li key={habit.id} className="manage-item" style={{ gridTemplateColumns: "1fr auto" }}>
+                <span className="manage-item__title">{habit.title}</span>
+                <div className="manage-item__actions">
+                  <button
+                    type="button"
+                    className="btn btn-tertiary"
+                    onClick={() => void unarchiveHabit(habit.id)}
+                    disabled={readOnly}
+                  >
+                    Вернуть
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={() => {
+                      if (window.confirm("Удалить привычку?")) {
+                        void deleteHabit(habit.id);
+                      }
+                    }}
+                    disabled={readOnly}
+                  >
+                    Удалить
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
     </main>
   );
 }

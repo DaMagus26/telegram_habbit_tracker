@@ -1,61 +1,67 @@
 # Telegram Mini App: Трекер привычек
 
-Полная реализация MVP из `task_description.md`:
-- `apps/web` — Telegram Mini App (React + TypeScript + Vite)
-- `apps/bot` — Telegram бот (grammY), который открывает Web App кнопкой
-- `render.yaml` — автодеплой фронтенда и бота на Render
+Мини-приложение для ежедневного отслеживания привычек внутри Telegram.
+Интерфейс выполнен в стиле Liquid Glass (iOS 26) — стеклянные поверхности, плавные анимации, вертикальный mobile-first макет.
 
-## Что реализовано
-
-- Главный экран:
-- Список привычек с чекбоксами для выбранного дня
-- График прогресса по неделе (7 точек, интерактивный)
-- Нижняя навигация по дням недели
-- Drawer-меню: управление, переключение недель, сброс дня, справка, о приложении
-
-- Управление привычками (`/manage`):
-- Добавление
-- Переименование
-- Архив / разархив
-- Удаление (с подтверждением)
-- Reorder активных привычек через drag&drop
-
-- Данные и устойчивость:
-- Хранение в `Telegram.WebApp.CloudStorage`
-- Fallback в `localStorage`, если CloudStorage недоступен
-- Ретраи + таймауты при сохранении
-- Валидация схемы через Zod
-- Поддержка `schema_version`
-- Read-only режим при невозможной миграции
-
-- Telegram интеграция:
-- `Telegram.WebApp.ready()` + `expand()`
-- Реакция на `themeChanged`
-- Поддержка `MainButton` и `BackButton`
-
-## Production URL
-
-- Mini App URL (после деплоя на Render): `https://<your-render-static-site>.onrender.com`
+| Компонент | Технологии |
+|-----------|-----------|
+| `apps/web` | React 18, TypeScript, Vite, Zustand, CSS (Liquid Glass) |
+| `apps/bot` | grammY, Node.js, TypeScript |
+| Деплой | Render (Static Site + Background Worker) |
 
 ## Структура проекта
 
-```text
-.
-├─ apps/
-│  ├─ web/
-│  └─ bot/
-├─ render.yaml
-├─ .env.example
-└─ README.md
 ```
+.
+├── apps/
+│   ├── web/                  # Фронтенд (Telegram Mini App)
+│   │   ├── src/
+│   │   │   ├── components/   # UI-компоненты
+│   │   │   ├── routes/       # Страницы (TrackerPage, ManageHabitsPage)
+│   │   │   ├── lib/          # Утилиты, стор, типы, Telegram API
+│   │   │   ├── styles.css    # Liquid Glass дизайн-система
+│   │   │   ├── App.tsx       # Роутер
+│   │   │   └── main.tsx      # Точка входа
+│   │   ├── index.html
+│   │   ├── vite.config.ts
+│   │   └── package.json
+│   └── bot/                  # Telegram-бот
+│       ├── src/index.ts      # Команды /start, /app, /help
+│       └── package.json
+├── render.yaml               # Render Blueprint (авто-деплой)
+├── pnpm-workspace.yaml
+├── .env.example
+├── task_description.md       # Полное ТЗ
+└── README.md
+```
+
+## Требования
+
+- **Node.js** 20+
+- **pnpm** 9+ (включается через `corepack`)
+
+## Переменные окружения
+
+Создайте файл `.env` в корне проекта по образцу `.env.example`:
+
+```env
+# Фронтенд
+VITE_APP_VERSION=1.0.0
+
+# Бот
+BOT_TOKEN=<токен от BotFather>
+WEB_APP_URL=<публичный HTTPS-адрес фронтенда>
+```
+
+| Переменная | Где используется | Описание |
+|------------|-----------------|----------|
+| `VITE_APP_VERSION` | `apps/web` | Версия, отображаемая в «О приложении» |
+| `BOT_TOKEN` | `apps/bot` | Токен Telegram-бота (получить через BotFather) |
+| `WEB_APP_URL` | `apps/bot` | Публичный HTTPS URL фронтенда |
 
 ## Локальный запуск
 
-Требования:
-- Node.js 20+
-- pnpm 9+
-
-1. Установить зависимости:
+### 1. Установка зависимостей
 
 ```bash
 corepack enable
@@ -63,119 +69,142 @@ corepack prepare pnpm@9.15.2 --activate
 pnpm install
 ```
 
-2. Создать `.env` в корне по примеру `.env.example`:
-
-```env
-VITE_APP_VERSION=1.0.0
-BOT_TOKEN=...
-WEB_APP_URL=https://<your-domain>
-```
-
-3. Запустить фронтенд:
+### 2. Запуск фронтенда
 
 ```bash
 pnpm dev:web
 ```
 
-4. Запустить бота:
+Vite поднимет dev-сервер на `http://localhost:5173`.
+
+### 3. Запуск бота
 
 ```bash
 pnpm dev:bot
 ```
 
-5. Для Telegram нужен HTTPS URL фронтенда. Локально используйте туннель:
+Бот запустится в режиме long-polling и будет слушать команды.
+
+### 4. HTTPS-туннель для Telegram
+
+Telegram Mini App требует HTTPS. Для локальной разработки используйте туннель:
 
 ```bash
-# пример с cloudflared
+# cloudflared
 cloudflared tunnel --url http://localhost:5173
+
+# или ngrok
+ngrok http 5173
 ```
 
-Полученный URL укажите в `WEB_APP_URL` для бота.
+Полученный HTTPS URL укажите в переменной `WEB_APP_URL` и перезапустите бота.
 
-## Деплой на Render
-
-### Вариант 1: через Blueprint (`render.yaml`)
-
-1. Запушьте репозиторий в GitHub.
-2. В Render: `New +` -> `Blueprint`.
-3. Выберите репозиторий — Render поднимет:
-- `habit-tracker-web` (static site)
-- `habit-tracker-bot` (worker)
-4. В worker задайте env:
-- `BOT_TOKEN`
-- `WEB_APP_URL` = URL статического сайта Render
-5. Дождитесь деплоя.
-
-### Вариант 2: руками
-
-1. Создайте `Static Site` для `apps/web`.
-2. Build command:
-
-```bash
-corepack enable && corepack prepare pnpm@9.15.2 --activate && pnpm install --no-frozen-lockfile && pnpm --filter web build
-```
-
-3. Publish dir: `apps/web/dist`.
-4. Добавьте rewrite `/* -> /index.html`.
-5. Создайте `Background Worker` для `apps/bot`.
-6. Build command:
-
-```bash
-corepack enable && corepack prepare pnpm@9.15.2 --activate && pnpm install --no-frozen-lockfile && pnpm --filter bot build
-```
-
-7. Start command:
-
-```bash
-pnpm --filter bot start
-```
-
-8. Добавьте env:
-- `BOT_TOKEN`
-- `WEB_APP_URL` (URL вашего сайта из шага 1)
-
-## Подключение к Telegram-боту
-
-1. Создайте бота в BotFather:
-- команда `/newbot`
-- получите токен
-
-2. Запишите токен в `BOT_TOKEN` (локально/на Render).
-
-3. Настройте menu button:
-- BotFather -> `/setmenubutton`
-- выберите бота
-- укажите URL вашего фронтенда (`https://...`)
-- подпись кнопки: `Открыть трекер`
-
-4. Проверьте `/start`:
-- бот отправляет сообщение `Откройте трекер привычек`
-- inline кнопка `web_app` открывает мини-приложение
-
-5. Опционально: deep link запуска mini app:
-- `https://t.me/<bot_username>?startapp=tracker`
-
-## Команды
+### 5. Запуск всего одной командой
 
 ```bash
 pnpm dev
-pnpm dev:web
-pnpm dev:bot
-pnpm build
-pnpm typecheck
 ```
 
-## Переменные окружения
+Запускает и фронтенд, и бота параллельно.
 
-- `VITE_APP_VERSION` — версия UI
-- `BOT_TOKEN` — Telegram bot token
-- `WEB_APP_URL` — публичный HTTPS URL mini app
+### Все доступные команды
 
-## Post-deploy checklist
+| Команда | Описание |
+|---------|----------|
+| `pnpm dev` | Фронтенд + бот параллельно |
+| `pnpm dev:web` | Только фронтенд (Vite, порт 5173) |
+| `pnpm dev:bot` | Только бот (tsx watch) |
+| `pnpm build` | Сборка обоих проектов |
+| `pnpm typecheck` | Проверка типов TypeScript |
 
-- Мини-приложение открывается из `/start` и через menu button
-- В iOS/Android Telegram корректная тема и высота WebView
-- Добавление/переименование/архив/удаление привычек работает
-- Чекбоксы обновляют график
-- Данные сохраняются после перезапуска
-- При недоступном CloudStorage есть fallback-баннер
+## Деплой на Render
+
+### Вариант 1: Blueprint (рекомендуется)
+
+Файл `render.yaml` описывает оба сервиса и позволяет развернуть их автоматически.
+
+1. Запушьте репозиторий на GitHub.
+
+2. В [Render Dashboard](https://dashboard.render.com) нажмите **New +** → **Blueprint**.
+
+3. Выберите репозиторий — Render создаст два сервиса:
+
+   | Сервис | Тип | Что делает |
+   |--------|-----|-----------|
+   | `habit-tracker-web` | Static Site | Фронтенд Mini App |
+   | `habit-tracker-bot` | Background Worker | Telegram-бот |
+
+4. Задайте переменные окружения в воркере `habit-tracker-bot`:
+
+   - `BOT_TOKEN` — токен Telegram-бота
+   - `WEB_APP_URL` — URL статического сайта из Render (вида `https://habit-tracker-web.onrender.com`)
+
+5. Дождитесь завершения деплоя обоих сервисов.
+
+### Вариант 2: ручная настройка
+
+#### Фронтенд (Static Site)
+
+1. В Render: **New +** → **Static Site**.
+2. Укажите репозиторий и ветку.
+3. Параметры:
+
+   | Поле | Значение |
+   |------|----------|
+   | Root Directory | `.` (корень) |
+   | Build Command | `corepack enable && corepack prepare pnpm@9.15.2 --activate && pnpm install --no-frozen-lockfile && pnpm --filter web build` |
+   | Publish Directory | `apps/web/dist` |
+
+4. Добавьте rewrite-правило: `/*` → `/index.html` (для SPA-роутинга).
+5. Добавьте переменную окружения `VITE_APP_VERSION=1.0.0`.
+
+#### Бот (Background Worker)
+
+1. В Render: **New +** → **Background Worker**.
+2. Укажите тот же репозиторий и ветку.
+3. Параметры:
+
+   | Поле | Значение |
+   |------|----------|
+   | Root Directory | `.` (корень) |
+   | Environment | Node |
+   | Build Command | `corepack enable && corepack prepare pnpm@9.15.2 --activate && pnpm install --no-frozen-lockfile && pnpm --filter bot build` |
+   | Start Command | `pnpm --filter bot start` |
+
+4. Добавьте переменные окружения:
+   - `BOT_TOKEN` — токен бота
+   - `WEB_APP_URL` — URL фронтенда из предыдущего шага
+
+## Настройка Telegram-бота
+
+### Создание бота
+
+1. Откройте [@BotFather](https://t.me/BotFather) в Telegram.
+2. Отправьте `/newbot`, следуйте инструкциям.
+3. Скопируйте полученный токен в `BOT_TOKEN`.
+
+### Настройка Menu Button
+
+Чтобы Mini App открывалось по кнопке в чате:
+
+1. Откройте BotFather.
+2. Отправьте `/setmenubutton`.
+3. Выберите бота.
+4. Укажите HTTPS URL фронтенда.
+5. Задайте подпись: `Открыть трекер`.
+
+### Проверка
+
+- `/start` — бот отправляет сообщение с inline-кнопкой `Открыть трекер`, которая открывает Mini App.
+- `/app` — повторно отправляет кнопку.
+- `/help` — список команд.
+
+## Чеклист после деплоя
+
+- [ ] Mini App открывается из `/start` и через Menu Button
+- [ ] Корректная тема и высота WebView в iOS и Android Telegram
+- [ ] Добавление, переименование, архивирование и удаление привычек работает
+- [ ] Чекбоксы обновляют график
+- [ ] Данные сохраняются между запусками (CloudStorage)
+- [ ] При недоступном CloudStorage отображается fallback-баннер
+- [ ] Шрифт Inter загружается (CSP разрешает `fonts.googleapis.com` и `fonts.gstatic.com`)

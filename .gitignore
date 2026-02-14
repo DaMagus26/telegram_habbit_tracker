@@ -208,3 +208,5 @@ __marimo__/
 
 # Habit tracker
 pnpm-lock.yaml
+node_modules/
+!apps/web/src/lib/

@@ -9,6 +9,20 @@ interface HabitChecklistProps {
   onAdd: () => void;
 }
 
+function CheckIcon(): JSX.Element {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <path
+        d="M2.5 7.5L5.5 10.5L11.5 3.5"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function HabitChecklist({
   habits,
   completedIds,
@@ -33,29 +47,42 @@ export function HabitChecklist({
     <section className="panel">
       <div className="panel__header panel__header--between">
         <h3>Привычки</h3>
-        <button type="button" className="btn btn-secondary" onClick={onAdd} disabled={disabled}>
+        <button type="button" className="btn btn-secondary btn-sm" onClick={onAdd} disabled={disabled}>
           + Добавить
         </button>
       </div>
       <ul className="habit-list">
-        {habits.map((habit) => {
+        {habits.map((habit, index) => {
           const checked = completedIds.has(habit.id);
           return (
-            <li key={habit.id} className="habit-item">
+            <li
+              key={habit.id}
+              className="habit-item"
+              style={{ animationDelay: `${index * 0.05}s` }}
+            >
               <label>
-                <span>{habit.title}</span>
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  disabled={disabled}
-                  aria-label={`Отметить привычку ${habit.title}`}
-                  onChange={() => onToggle(habit.id)}
-                />
-                {syncError ? (
-                  <span className="sync-warning-dot" title="Сохранение не завершено, повторите синхронизацию">
-                    !
+                <span className={`habit-item__title ${checked ? "habit-item__title--done" : ""}`}>
+                  {habit.title}
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {syncError ? (
+                    <span className="sync-warning-dot" title="Сохранение не завершено, повторите синхронизацию">
+                      !
+                    </span>
+                  ) : null}
+                  <span className="checkbox-wrapper">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      disabled={disabled}
+                      aria-label={`Отметить привычку ${habit.title}`}
+                      onChange={() => onToggle(habit.id)}
+                    />
+                    <span className="checkbox-visual">
+                      <CheckIcon />
+                    </span>
                   </span>
-                ) : null}
+                </div>
               </label>
             </li>
           );
